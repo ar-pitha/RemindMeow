@@ -61,6 +61,38 @@ export const requestFCMToken = async () => {
   }
 };
 
+// Request notification permission on app load (for mobile + desktop)
+export const requestNotificationPermissionOnAppLoad = async () => {
+  try {
+    // Skip if notifications not supported
+    if (!('Notification' in window)) {
+      console.warn('Notifications not supported');
+      return false;
+    }
+
+    const permission = Notification.permission;
+    
+    if (permission === 'denied') {
+      console.warn('Notifications are permanently denied');
+      return false;
+    }
+
+    if (permission === 'granted') {
+      console.log('✓ Notifications already permitted');
+      return true;
+    }
+
+    // Request permission (status is 'default')
+    console.log('🔔 Requesting notification permission...');
+    const result = await Notification.requestPermission();
+    console.log('Notification permission result:', result);
+    return result === 'granted';
+  } catch (error) {
+    console.warn('Error requesting notification permission:', error);
+    return false;
+  }
+};
+
 // Listen for foreground messages and handle sound + notifications
 export const setupForegroundMessageHandler = () => {
   try {

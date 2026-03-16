@@ -39,7 +39,7 @@ const taskSchema = new mongoose.Schema(
     },
     reminderTimes: {
       type: [Number], // in minutes before alarm time (e.g., [30, 15, 5])
-      default: [30, 15],
+      default: [30, 15, 5],
     },
     status: {
       type: String,

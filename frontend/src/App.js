@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthContext, AuthProvider } from './context/AuthContext';
 import { TaskProvider } from './context/TaskContext';
-import { requestFCMToken, setupForegroundMessageHandler } from './firebase/firebase';
+import { requestFCMToken, requestNotificationPermissionOnAppLoad, setupForegroundMessageHandler } from './firebase/firebase';
 import { Header } from './components/Header';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -25,6 +25,17 @@ function AppContent() {
   const { user, updateFCMToken, loading } = useContext(AuthContext);
   const notificationsInitializedRef = useRef(false);
   const fcmRefreshIntervalRef = useRef(null);
+
+  // Request notification permission on app load (for mobile + desktop)
+  useEffect(() => {
+    const requestPermissionOnLoad = async () => {
+      const hasPermission = await requestNotificationPermissionOnAppLoad();
+      if (hasPermission) {
+        console.log('📳 Notifications enabled for this app');
+      }
+    };
+    requestPermissionOnLoad();
+  }, []);
 
   useEffect(() => {
     // Request notification permission and get FCM token

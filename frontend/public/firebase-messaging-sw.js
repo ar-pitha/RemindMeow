@@ -18,11 +18,18 @@ firebase.initializeApp(firebaseConfig);
 // Retrieve an instance of Firebase Messaging
 const messaging = firebase.messaging();
 
+console.log('[SERVICE WORKER] Firebase Cloud Messaging Service Worker initialized');
+
 // Helper to play alarm sound via Web Audio API in service worker
 const playAlarmSound = async () => {
   try {
-    // Get all clients to trigger sound
-    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    // Get all clients to trigger sound (including hidden ones)
+    const clients = await self.clients.matchAll({ 
+      type: 'window', 
+      includeUncontrolled: true 
+    });
+    
+    console.log(`🔊 [SERVICE WORKER] Found ${clients.length} clients to notify`);
     
     for (const client of clients) {
       client.postMessage({
@@ -31,9 +38,13 @@ const playAlarmSound = async () => {
       });
     }
     
-    console.log('🔊 [SERVICE WORKER] Alarm sound trigger sent to', clients.length, 'client(s)');
+    if (clients.length === 0) {
+      console.warn('⚠️ [SERVICE WORKER] No clients available to trigger sound');
+    } else {
+      console.log('✅ [SERVICE WORKER] Alarm sound trigger sent to', clients.length, 'client(s)');
+    }
   } catch (error) {
-    console.warn('⚠️ [SERVICE WORKER] Could not trigger alarm sound:', error.message);
+    console.error('❌ [SERVICE WORKER] Error triggering alarm sound:', error);
   }
 };
 
@@ -45,46 +56,75 @@ messaging.onBackgroundMessage((payload) => {
   const notificationBody = payload.notification?.body || 'You have a new notification';
   const taskId = payload.data?.taskId || 'alarm-notification';
   
+  // Enhanced notification options for mobile
   const notificationOptions = {
     body: notificationBody,
     icon: '/favicon.ico',
     badge: '/favicon.ico',
     tag: taskId,
     data: payload.data || {},
-    requireInteraction: true,
+    requireInteraction: true,  // Keep notification visible until user interacts
+    actions: [
+      {
+        action: 'open',
+        title: 'Open Task',
+        icon: '/favicon.ico',
+      },
+      {
+        action: 'close',
+        title: 'Dismiss',
+        icon: '/favicon.ico',
+      },
+    ],
   };
 
-  // Show notification
+  console.log('🔔 [SERVICE WORKER] Showing notification with options:', notificationOptions);
+
+  // Show notification and trigger alarm sound
   const notificationPromise = self.registration.showNotification(notificationTitle, notificationOptions);
 
-  // Trigger alarm sound through clients
-  notificationPromise.then(async () => {
-    console.log('✅ [SERVICE WORKER] Notification shown:', notificationTitle);
-    await playAlarmSound();
-  }).catch((error) => {
-    console.error('❌ [SERVICE WORKER] Error showing notification:', error);
-  });
+  notificationPromise
+    .then(async () => {
+      console.log('✅ [SERVICE WORKER] Notification shown successfully:', notificationTitle);
+      // Give user a moment to see notification before playing sound
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await playAlarmSound();
+    })
+    .catch((error) => {
+      console.error('❌ [SERVICE WORKER] Error showing notification:', error);
+    });
 
   return notificationPromise;
 });
 
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SERVICE WORKER] Notification clicked:', event.notification);
+  console.log('[SERVICE WORKER] Notification clicked:', event.notification, 'Action:', event.action);
 
   event.notification.close();
 
-  // Handle click action
+  // Handle different actions
+  if (event.action === 'close') {
+    return;
+  }
+
+  // Handle click action or default click
   event.waitUntil(
     clients.matchAll({ type: 'window' }).then((clientList) => {
+      console.log(`[SERVICE WORKER] Found ${clientList.length} windows`);
+      
       // Check if there's already a window/tab open
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        if (client.url === '/' && 'focus' in client) {
+        console.log(`[SERVICE WORKER] Checking window: ${client.url}`);
+        if (client.url.includes('dashboard') || client.url.includes('localhost') || client.url.includes('vercel.app')) {
+          console.log('[SERVICE WORKER] Focusing existing window');
           return client.focus();
         }
       }
+      
       // If no window is found, open a new one
+      console.log('[SERVICE WORKER] Opening new dashboard window');
       if (clients.openWindow) {
         return clients.openWindow('/dashboard');
       }
@@ -95,4 +135,13 @@ self.addEventListener('notificationclick', (event) => {
 // Handle notification close
 self.addEventListener('notificationclose', (event) => {
   console.log('[SERVICE WORKER] Notification closed:', event.notification);
+});
+
+// Respond to messages from clients
+self.addEventListener('message', (event) => {
+  console.log('[SERVICE WORKER] Message received from client:', event.data);
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
