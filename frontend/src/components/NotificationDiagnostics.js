@@ -10,6 +10,7 @@ export const NotificationDiagnostics = () => {
     isAndroid: false,
     isPWA: false,
   });
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -77,70 +78,137 @@ export const NotificationDiagnostics = () => {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: 20,
-      right: 20,
-      maxWidth: '300px',
-      backgroundColor: '#f5f5f5',
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '12px',
-      fontSize: '12px',
-      fontFamily: 'monospace',
-      zIndex: 9999,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    }}>
-      <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#333' }}>
-        📱 Notification Status
-      </div>
-      
-      <div style={{ marginBottom: '6px' }}>
-        <span style={{ color: '#666' }}>Device: </span>
-        <span>{status.isAndroid ? 'Android' : status.isIOS ? 'iOS' : 'Unknown'}</span>
-      </div>
+    <>
+      {/* Toggle Button - Always visible */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          position: 'fixed',
+          bottom: 20,
+          right: 20,
+          width: '50px',
+          height: '50px',
+          borderRadius: '50%',
+          backgroundColor: '#667eea',
+          border: 'none',
+          color: 'white',
+          fontSize: '24px',
+          cursor: 'pointer',
+          zIndex: 9998,
+          boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.3s ease',
+          ...(isOpen && { opacity: 0, pointerEvents: 'none' })
+        }}
+        title="Toggle notification status"
+      >
+        🔔
+      </button>
 
-      <div style={{ marginBottom: '6px' }}>
-        <span style={{ color: '#666' }}>PWA Mode: </span>
-        <span style={{ color: status.isPWA ? '#4CAF50' : '#ff9800' }}>
-          {status.isPWA ? '✓ Yes' : status.isMobile ? '✗ No (install app for background notifications)' : 'N/A'}
-        </span>
-      </div>
+      {/* Status Panel - Shows when open */}
+      {isOpen && (
+        <div style={{
+          position: 'fixed',
+          bottom: 20,
+          right: 20,
+          maxWidth: '300px',
+          backgroundColor: '#f5f5f5',
+          border: '1px solid #ddd',
+          borderRadius: '8px',
+          padding: '12px',
+          fontSize: '12px',
+          fontFamily: 'monospace',
+          zIndex: 9999,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          animation: 'slideIn 0.3s ease',
+        }}>
+          {/* Close Button */}
+          <button
+            onClick={() => setIsOpen(false)}
+            style={{
+              position: 'absolute',
+              top: '8px',
+              right: '8px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              fontSize: '20px',
+              cursor: 'pointer',
+              padding: '0',
+              color: '#333',
+              lineHeight: '1',
+            }}
+            title="Close status"
+          >
+            ✕
+          </button>
 
-      <hr style={{ margin: '6px 0', borderColor: '#ddd' }} />
+          <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#333', paddingRight: '20px' }}>
+            📱 Notification Status
+          </div>
+          
+          <div style={{ marginBottom: '6px' }}>
+            <span style={{ color: '#666' }}>Device: </span>
+            <span>{status.isAndroid ? 'Android' : status.isIOS ? 'iOS' : 'Unknown'}</span>
+          </div>
 
-      <div style={{ marginBottom: '6px' }}>
-        <span style={{ color: '#666' }}>Service Worker: </span>
-        <span style={{ color: getStatusColor(status.serviceWorker) }}>
-          {getStatusText(status.serviceWorker)}
-        </span>
-      </div>
+          <div style={{ marginBottom: '6px' }}>
+            <span style={{ color: '#666' }}>PWA Mode: </span>
+            <span style={{ color: status.isPWA ? '#4CAF50' : '#ff9800' }}>
+              {status.isPWA ? '✓ Yes' : status.isMobile ? '✗ No (install app for background notifications)' : 'N/A'}
+            </span>
+          </div>
 
-      <div style={{ marginBottom: '6px' }}>
-        <span style={{ color: '#666' }}>Notification: </span>
-        <span style={{ color: getStatusColor(status.notification) }}>
-          {getStatusText(status.notification)}
-        </span>
-      </div>
+          <hr style={{ margin: '6px 0', borderColor: '#ddd' }} />
 
-      <div style={{ marginBottom: '6px' }}>
-        <span style={{ color: '#666' }}>FCM Token: </span>
-        <span style={{ color: getStatusColor(status.fcmToken) }}>
-          {getStatusText(status.fcmToken)}
-        </span>
-      </div>
+          <div style={{ marginBottom: '6px' }}>
+            <span style={{ color: '#666' }}>Service Worker: </span>
+            <span style={{ color: getStatusColor(status.serviceWorker) }}>
+              {getStatusText(status.serviceWorker)}
+            </span>
+          </div>
 
-      {status.isIOS && (
-        <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#fff3cd', borderRadius: '4px', color: '#856404' }}>
-          ⚠️ iOS: Background notifications not supported in mobile Safari. Use the app on iOS 16.4+ or install as PWA.
+          <div style={{ marginBottom: '6px' }}>
+            <span style={{ color: '#666' }}>Notification: </span>
+            <span style={{ color: getStatusColor(status.notification) }}>
+              {getStatusText(status.notification)}
+            </span>
+          </div>
+
+          <div style={{ marginBottom: '6px' }}>
+            <span style={{ color: '#666' }}>FCM Token: </span>
+            <span style={{ color: getStatusColor(status.fcmToken) }}>
+              {getStatusText(status.fcmToken)}
+            </span>
+          </div>
+
+          {status.isIOS && (
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#fff3cd', borderRadius: '4px', color: '#856404' }}>
+              ⚠️ iOS: Background notifications not supported in mobile Safari. Use the app on iOS 16.4+ or install as PWA.
+            </div>
+          )}
+
+          {status.isMobile && !status.isPWA && (
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#d1ecf1', borderRadius: '4px', color: '#0c5460' }}>
+              💡 Tip: Install this app as PWA for reliable background notifications.
+            </div>
+          )}
         </div>
       )}
 
-      {status.isMobile && !status.isPWA && (
-        <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#d1ecf1', borderRadius: '4px', color: '#0c5460' }}>
-          💡 Tip: Install this app as PWA for reliable background notifications.
-        </div>
-      )}
-    </div>
+      <style>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
+    </>
   );
 };
