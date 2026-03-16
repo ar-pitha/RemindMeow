@@ -201,7 +201,7 @@ export const TaskForm = ({ onSuccess }) => {
               onChange={handleChange}
               required
             />
-            <small style={{ display: 'block', marginTop: '0.3rem', color: '#666', fontSize: '0.85rem' }}>
+            <small style={{ display: 'block', marginTop: '0.3rem', color: '#9B9890', fontSize: '0.85rem' }}>
               🌍 Your timezone: <strong>{getSystemTimezone()}</strong> ({getTimezoneOffset()})
             </small>
           </div>

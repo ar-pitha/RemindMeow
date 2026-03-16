@@ -1,12 +1,12 @@
 /* Dashboard Layout */
 .dashboard-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #F5F4F1;
 }
 
 .dashboard-header {
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #FFFFFF;
+  border-bottom: 0.5px solid #E5E3DE;
   padding: 20px;
   margin-bottom: 30px;
 }
@@ -21,17 +21,15 @@
 
 .dashboard-header h1 {
   font-size: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1C1B18;
 }
 
 .user-info {
-  background: #f5f5f5;
+  background: #EEECEA;
   padding: 10px 20px;
   border-radius: 20px;
   font-weight: 500;
+  color: #6B6860;
 }
 
 .dashboard-content {
@@ -41,18 +39,19 @@
 }
 
 .btn-create-task {
-  background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
+  background: #FFFFFF;
+  color: #F26B35;
+  border: 1.5px solid #F26B35;
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
+  margin-top: 20px;
   margin-bottom: 20px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-create-task:hover {
-  background: #667eea;
+  background: #F26B35;
   color: white;
 }
 
@@ -69,16 +68,17 @@
 }
 
 .main-content {
-  background: white;
+  background: #FFFFFF;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 0.5px solid #E5E3DE;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
 .tabs {
   display: flex;
-  background: #f5f5f5;
-  border-bottom: 1px solid #ddd;
+  background: #EEECEA;
+  border-bottom: 1px solid #E5E3DE;
 }
 
 .tab {
@@ -89,32 +89,34 @@
   padding: 15px;
   text-align: center;
   font-weight: 600;
+  color: #9B9890;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   border-bottom: 3px solid transparent;
 }
 
 .tab:hover {
-  background: #efefef;
+  background: #F5F4F1;
+  color: #6B6860;
 }
 
 .tab.active {
-  background: white;
-  color: #667eea;
-  border-bottom-color: #667eea;
+  background: #FFFFFF;
+  color: #F26B35;
+  border-bottom-color: #F26B35;
 }
 
 .loading {
   padding: 40px;
   text-align: center;
-  color: #999;
+  color: #9B9890;
   font-size: 1.1rem;
 }
 
 .empty-state {
   padding: 60px 20px;
   text-align: center;
-  color: #999;
+  color: #9B9890;
 }
 
 .empty-state p {

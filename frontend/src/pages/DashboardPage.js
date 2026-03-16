@@ -16,14 +16,59 @@ export const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('pending');
   const [showForm, setShowForm] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
   const socketInitializedRef = useRef(false);
   const userIdRef = useRef(null);
   const fcmRefreshedRef = useRef(false);
+  const countsInitializedRef = useRef(false);
 
-  // Load tasks when tab changes
+  // Load counts for both tabs on initial mount
+  useEffect(() => {
+    if (user && !countsInitializedRef.current) {
+      countsInitializedRef.current = true;
+      
+      const loadCounts = async () => {
+        try {
+          // Load pending count
+          const pendingTasks = await getTasks('pending', true);
+          setPendingCount(pendingTasks?.length || 0);
+          
+          // Load completed count
+          const completedTasks = await getTasks('completed', true);
+          setCompletedCount(completedTasks?.length || 0);
+          
+          // Default to pending tab
+          await getTasks('pending', true);
+        } catch (err) {
+          console.error('Error loading task counts:', err);
+        }
+      };
+      
+      loadCounts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Load tasks when tab changes and update counts
   useEffect(() => {
     if (user) {
-      getTasks(activeTab, true); // Force refresh on tab change
+      const loadTabData = async () => {
+        try {
+          const tabTasks = await getTasks(activeTab, true);
+          
+          // Update the count for the active tab
+          if (activeTab === 'pending') {
+            setPendingCount(tabTasks?.length || 0);
+          } else {
+            setCompletedCount(tabTasks?.length || 0);
+          }
+        } catch (err) {
+          console.error('Error loading tab data:', err);
+        }
+      };
+      
+      loadTabData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -134,13 +179,13 @@ export const DashboardPage = () => {
                 className={`tab ${activeTab === 'pending' ? 'active' : ''}`}
                 onClick={() => setActiveTab('pending')}
               >
-                📋 Pending ({pendingTasks.length})
+                📋 Pending ({pendingCount})
               </button>
               <button
                 className={`tab ${activeTab === 'completed' ? 'active' : ''}`}
                 onClick={() => setActiveTab('completed')}
               >
-                ✅ Completed ({completedTasks.length})
+                ✅ Completed ({completedCount})
               </button>
             </div>
 

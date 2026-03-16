@@ -61,9 +61,9 @@ export const NotificationDiagnostics = () => {
   if (!status.isMobile) return null;
 
   const getStatusColor = (value) => {
-    if (value === 'granted' || value === 'registered' || value === 'stored') return '#4CAF50';
-    if (value === 'denied' || value === 'error' || value === 'not-registered') return '#f44336';
-    return '#ff9800';
+    if (value === 'granted' || value === 'registered' || value === 'stored') return '#10B981';
+    if (value === 'denied' || value === 'error' || value === 'not-registered') return '#EF4444';
+    return '#F26B35';
   };
 
   const getStatusText = (value) => {
@@ -89,13 +89,13 @@ export const NotificationDiagnostics = () => {
           width: '50px',
           height: '50px',
           borderRadius: '50%',
-          backgroundColor: '#667eea',
+          backgroundColor: '#F26B35',
           border: 'none',
           color: 'white',
           fontSize: '24px',
           cursor: 'pointer',
           zIndex: 9998,
-          boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+          boxShadow: '0 4px 12px rgba(242, 107, 53, 0.4)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -114,8 +114,8 @@ export const NotificationDiagnostics = () => {
           bottom: 20,
           right: 20,
           maxWidth: '300px',
-          backgroundColor: '#f5f5f5',
-          border: '1px solid #ddd',
+          backgroundColor: '#EEECEA',
+          border: '1px solid #E5E3DE',
           borderRadius: '8px',
           padding: '12px',
           fontSize: '12px',
@@ -136,7 +136,7 @@ export const NotificationDiagnostics = () => {
               fontSize: '20px',
               cursor: 'pointer',
               padding: '0',
-              color: '#333',
+              color: '#1C1B18',
               lineHeight: '1',
             }}
             title="Close status"
@@ -144,53 +144,53 @@ export const NotificationDiagnostics = () => {
             ✕
           </button>
 
-          <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#333', paddingRight: '20px' }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#1C1B18', paddingRight: '20px' }}>
             📱 Notification Status
           </div>
           
           <div style={{ marginBottom: '6px' }}>
-            <span style={{ color: '#666' }}>Device: </span>
+            <span style={{ color: '#9B9890' }}>Device: </span>
             <span>{status.isAndroid ? 'Android' : status.isIOS ? 'iOS' : 'Unknown'}</span>
           </div>
 
           <div style={{ marginBottom: '6px' }}>
-            <span style={{ color: '#666' }}>PWA Mode: </span>
-            <span style={{ color: status.isPWA ? '#4CAF50' : '#ff9800' }}>
+            <span style={{ color: '#9B9890' }}>PWA Mode: </span>
+            <span style={{ color: status.isPWA ? '#10B981' : '#F26B35' }}>
               {status.isPWA ? '✓ Yes' : status.isMobile ? '✗ No (install app for background notifications)' : 'N/A'}
             </span>
           </div>
 
-          <hr style={{ margin: '6px 0', borderColor: '#ddd' }} />
+          <hr style={{ margin: '6px 0', borderColor: '#E5E3DE' }} />
 
           <div style={{ marginBottom: '6px' }}>
-            <span style={{ color: '#666' }}>Service Worker: </span>
+            <span style={{ color: '#9B9890' }}>Service Worker: </span>
             <span style={{ color: getStatusColor(status.serviceWorker) }}>
               {getStatusText(status.serviceWorker)}
             </span>
           </div>
 
           <div style={{ marginBottom: '6px' }}>
-            <span style={{ color: '#666' }}>Notification: </span>
+            <span style={{ color: '#9B9890' }}>Notification: </span>
             <span style={{ color: getStatusColor(status.notification) }}>
               {getStatusText(status.notification)}
             </span>
           </div>
 
           <div style={{ marginBottom: '6px' }}>
-            <span style={{ color: '#666' }}>FCM Token: </span>
+            <span style={{ color: '#9B9890' }}>FCM Token: </span>
             <span style={{ color: getStatusColor(status.fcmToken) }}>
               {getStatusText(status.fcmToken)}
             </span>
           </div>
 
           {status.isIOS && (
-            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#fff3cd', borderRadius: '4px', color: '#856404' }}>
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#FFF3E0', borderRadius: '4px', color: '#F26B35' }}>
               ⚠️ iOS: Background notifications not supported in mobile Safari. Use the app on iOS 16.4+ or install as PWA.
             </div>
           )}
 
           {status.isMobile && !status.isPWA && (
-            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#d1ecf1', borderRadius: '4px', color: '#0c5460' }}>
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#E3F2FD', borderRadius: '4px', color: '#1565C0' }}>
               💡 Tip: Install this app as PWA for reliable background notifications.
             </div>
           )}
