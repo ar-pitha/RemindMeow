@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthContext, AuthProvider } from './context/AuthContext';
 import { TaskProvider } from './context/TaskContext';
-import { requestFCMToken, onMessageListener } from './firebase/firebase';
+import { requestFCMToken, setupForegroundMessageHandler } from './firebase/firebase';
 import { Header } from './components/Header';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -67,10 +67,8 @@ function AppContent() {
               console.log('✓ FCM token updated');
             }
 
-            // Listen for foreground messages
-            onMessageListener().then((payload) => {
-              console.log('📬 Foreground notification received:', payload);
-            });
+            // Setup foreground message handler for sound + notifications
+            setupForegroundMessageHandler();
 
             // Setup periodic FCM token refresh every 55 minutes
             // (tokens can expire, so we refresh before expiration)

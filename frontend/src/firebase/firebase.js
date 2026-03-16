@@ -61,14 +61,124 @@ export const requestFCMToken = async () => {
   }
 };
 
-// Listen for foreground messages
-export const onMessageListener = () => {
-  return new Promise((resolve) => {
+// Listen for foreground messages and handle sound + notifications
+export const setupForegroundMessageHandler = () => {
+  try {
     onMessage(messaging, (payload) => {
-      console.log('Message received in foreground:', payload);
-      resolve(payload);
+      console.log('📱 [FIREBASE] Foreground message received:', payload);
+      
+      const title = payload.notification?.title || 'Alarm Reminder';
+      const body = payload.notification?.body || 'You have a new notification';
+      const data = payload.data || {};
+
+      // Show notification with sound
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const notification = new Notification(title, {
+          body: body,
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: data.taskId || 'alarm-notification',
+          requireInteraction: true,
+          sound: '/sounds/notification.mp3',
+          data: data,
+        });
+
+        // Play sound immediately
+        playNotificationSound();
+
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+          // Navigate to dashboard if needed
+          if (data.taskId) {
+            window.location.href = '/dashboard';
+          }
+        };
+
+        console.log('✅ [FIREBASE] Foreground notification shown with sound:', title);
+      }
+
+      return payload;
     });
-  });
+
+    console.log('✅ [FIREBASE] Foreground message handler registered');
+  } catch (error) {
+    console.warn('⚠️ [FIREBASE] Error setting up foreground handler:', error.message);
+  }
+};
+
+// Play notification sound using multiple methods
+const playNotificationSound = () => {
+  try {
+    // Method 1: Try to play from file
+    const audio = new Audio('/sounds/notification.mp3');
+    audio.volume = 0.8;
+    
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log('🔊 [FIREBASE] Notification sound playing from file');
+        })
+        .catch((err) => {
+          console.warn('⚠️ Could not play from file:', err.message);
+          // Fallback to Web Audio API siren
+          playSirenSound();
+        });
+    }
+  } catch (error) {
+    console.warn('⚠️ Error playing sound file, using fallback:', error.message);
+    playSirenSound();
+  }
+};
+
+// Generate and play siren sound using Web Audio API
+const playSirenSound = () => {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioContext = new AudioContext();
+
+    // Create two frequency sweeps for alarm effect
+    for (let cycle = 0; cycle < 3; cycle++) {
+      const startTime = audioContext.currentTime + cycle * 1;
+
+      // High frequency tone
+      const osc1 = audioContext.createOscillator();
+      const gain1 = audioContext.createGain();
+
+      osc1.connect(gain1);
+      gain1.connect(audioContext.destination);
+
+      osc1.frequency.setValueAtTime(800, startTime);
+      osc1.frequency.exponentialRampToValueAtTime(600, startTime + 0.4);
+
+      gain1.gain.setValueAtTime(0.3, startTime);
+      gain1.gain.exponentialRampToValueAtTime(0.05, startTime + 0.4);
+
+      osc1.start(startTime);
+      osc1.stop(startTime + 0.4);
+
+      // Low frequency tone for richness
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+
+      osc2.connect(gain2);
+      gain2.connect(audioContext.destination);
+
+      osc2.frequency.setValueAtTime(400, startTime);
+      osc2.frequency.exponentialRampToValueAtTime(300, startTime + 0.4);
+
+      gain2.gain.setValueAtTime(0.2, startTime);
+      gain2.gain.exponentialRampToValueAtTime(0.03, startTime + 0.4);
+
+      osc2.start(startTime);
+      osc2.stop(startTime + 0.4);
+    }
+
+    console.log('🔊 [FIREBASE] Alarm siren sound generated via Web Audio API');
+  } catch (error) {
+    console.warn('⚠️ Could not generate siren sound:', error.message);
+  }
 };
 
 export { messaging, app };
