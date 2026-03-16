@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { TaskForm } from '../components/TaskForm';
 import { TaskList } from '../components/TaskList';
 import { NotificationPanel } from '../components/NotificationPanel';
+import { NotificationDiagnostics } from '../components/NotificationDiagnostics';
 import { connectSocket, onTaskCompleted, onNotificationReceived, onAlarmRinging, disconnectSocket } from '../services/socket';
 import { requestFCMToken } from '../firebase/firebase';
 import alarmSoundService from '../services/alarmSound';
@@ -157,6 +158,7 @@ export const DashboardPage = () => {
 
           <NotificationPanel notifications={notifications} />
         </div>
+        <NotificationDiagnostics />
       </div>
     </div>
   );

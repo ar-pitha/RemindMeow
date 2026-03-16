@@ -64,16 +64,27 @@ export const requestFCMToken = async () => {
 // Request notification permission on app load (for mobile + desktop)
 export const requestNotificationPermissionOnAppLoad = async () => {
   try {
+    // Detect mobile
+    const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase());
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    
+    // iOS Safari doesn't support Web Push API
+    if (isIOS) {
+      console.warn('[FCM] iOS detected - Web Push API not supported in Safari. Foreground notifications only.');
+      return false;
+    }
+    
     // Skip if notifications not supported
     if (!('Notification' in window)) {
-      console.warn('Notifications not supported');
+      console.warn('[FCM] Notifications not supported');
       return false;
     }
 
     const permission = Notification.permission;
+    console.log('[FCM] Current permission:', permission, '| Mobile:', isMobile);
     
     if (permission === 'denied') {
-      console.warn('Notifications are permanently denied');
+      console.warn('[FCM] Notifications are permanently denied');
       return false;
     }
 
@@ -83,12 +94,12 @@ export const requestNotificationPermissionOnAppLoad = async () => {
     }
 
     // Request permission (status is 'default')
-    console.log('🔔 Requesting notification permission...');
+    console.log('[FCM] Requesting notification permission...');
     const result = await Notification.requestPermission();
-    console.log('Notification permission result:', result);
+    console.log('[FCM] Permission result:', result);
     return result === 'granted';
   } catch (error) {
-    console.warn('Error requesting notification permission:', error);
+    console.warn('[FCM] Error requesting permission:', error);
     return false;
   }
 };

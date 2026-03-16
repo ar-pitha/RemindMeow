@@ -9,23 +9,54 @@ root.render(
   </React.StrictMode>
 );
 
-// Register service worker for Firebase Cloud Messaging
+// Mobile device detection
+const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase());
+const isAndroid = /android/i.test(navigator.userAgent);
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+console.log(`[APP] Device detection: Mobile=${isMobile}, Android=${isAndroid}, iOS=${isIOS}`);
+
+// Register service worker for Firebase Cloud Messaging with mobile support
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/firebase-messaging-sw.js')
-      .then((registration) => {
-        console.log('✓ Service Worker registered for FCM:', registration);
-      })
-      .catch((err) => {
-        console.warn('Service Worker registration failed:', err);
+  console.log('[APP] Service Worker support detected');
+  
+  // For mobile, register immediately; for desktop, wait for load
+  const registerServiceWorker = async () => {
+    try {
+      console.log('[APP] Attempting to register Service Worker...');
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+        scope: '/',
       });
-  });
+      console.log('✓ Service Worker registered successfully:', registration);
+      console.log('[APP] SW Scope:', registration.scope);
+      console.log('[APP] SW controlling page:', !!navigator.serviceWorker.controller);
+      
+      // For mobile PWA, ensure controller is set
+      if (isMobile && !navigator.serviceWorker.controller) {
+        console.warn('[APP] Mobile: Service Worker not controlling page yet (may control on reload)');
+      }
+    } catch (err) {
+      console.error('❌ Service Worker registration failed:', err);
+      console.error('[APP] Error details:', err.message);
+    }
+  };
+  
+  if (isMobile) {
+    // For mobile, register immediately
+    console.log('[APP] Mobile device detected, registering Service Worker immediately');
+    registerServiceWorker();
+  } else {
+    // For desktop, wait for load event
+    window.addEventListener('load', registerServiceWorker);
+  }
+} else {
+  console.error('[APP] Service Worker not supported');
 }
 
 // Listen for messages from service worker to play alarm sound
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', (event) => {
+    console.log('[APP] Message from Service Worker:', event.data);
     if (event.data.type === 'PLAY_ALARM_SOUND') {
       playAlarmSound();
     } else if (event.data.type === 'PLAY_SOUND') {
