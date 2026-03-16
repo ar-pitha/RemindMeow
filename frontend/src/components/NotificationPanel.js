@@ -124,6 +124,12 @@ export const NotificationPanel = ({ notifications: realtimeNotifications }) => {
     const handleAlarmStopped = (alarmData) => {
       console.log('🛑 Alarm stopped by another user:', alarmData);
       alarmSoundService.stopAlarm();
+      
+      // Also stop from global implementation
+      if (window.stopAlarmSound) {
+        window.stopAlarmSound();
+      }
+      
       setShowStopButton(false);
       setActiveAlarmTaskId(null);
       
@@ -171,7 +177,15 @@ export const NotificationPanel = ({ notifications: realtimeNotifications }) => {
 
   const handleStopAlarm = () => {
     console.log('🛑 Stopping alarm and notifying other users...');
+    
+    // Stop alarm from alarmSoundService
     alarmSoundService.stopAlarm();
+    
+    // Also stop from global index.js implementation (for service worker triggered alarms)
+    if (window.stopAlarmSound) {
+      window.stopAlarmSound();
+    }
+    
     setShowStopButton(false);
     
     // Notify all other users connected to this alarm

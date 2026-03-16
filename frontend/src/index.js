@@ -53,6 +53,11 @@ if ('serviceWorker' in navigator) {
   console.error('[APP] Service Worker not supported');
 }
 
+// Global state for alarm sound control
+let globalAudioContext = null;
+let alarmOscillators = [];
+let alarmIsPlaying = false;
+
 // Listen for messages from service worker to play alarm sound
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', (event) => {
@@ -65,71 +70,124 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Play alarm sound using Web Audio API (when notification arrives)
-const playAlarmSound = () => {
+// Initialize global audio context for mobile
+const initializeGlobalAudioContext = async () => {
+  if (globalAudioContext && globalAudioContext.state !== 'closed') {
+    return globalAudioContext;
+  }
+  
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
-    const audioContext = new AudioContext();
-
-    // Resume context if suspended (required for user interaction)
-    if (audioContext.state === 'suspended') {
-      audioContext.resume();
+    globalAudioContext = new AudioContext();
+    console.log('✅ [AUDIO] Global AudioContext initialized, state:', globalAudioContext.state);
+    
+    // Resume if suspended (required for mobile autoplay)
+    if (globalAudioContext.state === 'suspended') {
+      console.log('🔓 [AUDIO] Resuming suspended AudioContext...');
+      await globalAudioContext.resume();
+      console.log('✅ [AUDIO] AudioContext resumed, state:', globalAudioContext.state);
     }
-
-    // Create multiple alarm cycles
-    for (let cycle = 0; cycle < 4; cycle++) {
-      const startTime = audioContext.currentTime + cycle * 0.9;
-
-      // High frequency tone
-      const osc1 = audioContext.createOscillator();
-      const gain1 = audioContext.createGain();
-
-      osc1.connect(gain1);
-      gain1.connect(audioContext.destination);
-
-      osc1.frequency.setValueAtTime(900, startTime);
-      osc1.frequency.exponentialRampToValueAtTime(650, startTime + 0.35);
-
-      gain1.gain.setValueAtTime(0.4, startTime);
-      gain1.gain.exponentialRampToValueAtTime(0.05, startTime + 0.35);
-
-      osc1.start(startTime);
-      osc1.stop(startTime + 0.35);
-
-      // Low frequency tone
-      const osc2 = audioContext.createOscillator();
-      const gain2 = audioContext.createGain();
-
-      osc2.connect(gain2);
-      gain2.connect(audioContext.destination);
-
-      osc2.frequency.setValueAtTime(450, startTime);
-      osc2.frequency.exponentialRampToValueAtTime(300, startTime + 0.35);
-
-      gain2.gain.setValueAtTime(0.25, startTime);
-      gain2.gain.exponentialRampToValueAtTime(0.03, startTime + 0.35);
-
-      osc2.start(startTime);
-      osc2.stop(startTime + 0.35);
-    }
-
-    console.log('🔊 [INDEX] Alarm sound playing via Web Audio API');
+    
+    return globalAudioContext;
   } catch (error) {
-    console.warn('⚠️ [INDEX] Could not play alarm sound:', error.message);
+    console.error('❌ [AUDIO] Failed to initialize AudioContext:', error);
+    return null;
   }
 };
 
-// Play sound from file (legacy fallback)
-const playSoundFromFile = (soundUrl) => {
+// Stop all alarm sounds
+const stopAlarmSound = () => {
   try {
-    const audio = new Audio(soundUrl);
-    audio.volume = 0.8;
-    audio.play().catch((err) => {
-      console.warn('⚠️ [INDEX] Could not play sound file:', err.message);
-      playAlarmSound();
+    console.log('🛑 [AUDIO] Stopping all alarm sounds...');
+    alarmOscillators.forEach((osc, index) => {
+      try {
+        if (osc && typeof osc.stop === 'function') {
+          osc.stop();
+          console.log(`✅ [AUDIO] Oscillator ${index} stopped`);
+        }
+      } catch (e) {
+        console.log(`ℹ️ [AUDIO] Oscillator ${index} already stopped`);
+      }
     });
-    console.log('🔊 [INDEX] Sound playing from file');
+    alarmOscillators = [];
+    alarmIsPlaying = false;
+    console.log('✅ [AUDIO] All alarm sounds stopped');
   } catch (error) {
-    console.warn('⚠️ [INDEX] Error playing sound:', error.message);
+    console.error('❌ [AUDIO] Error stopping alarm:', error);
   }
+};
+
+// Play alarm sound using Web Audio API with extended duration for mobile
+const playAlarmSound = async () => {
+  try {
+    // Stop any existing sound
+    if (alarmIsPlaying) {
+      stopAlarmSound();
+    }
+
+    const audioContext = await initializeGlobalAudioContext();
+    if (!audioContext) {
+      console.error('❌ [AUDIO] No audio context available');
+      return;
+    }
+
+    alarmIsPlaying = true;
+    const now = audioContext.currentTime;
+    const totalDuration = 60; // 60 seconds of total alarm
+    const cycleLength = 0.9;
+    const cycleCount = Math.floor(totalDuration / cycleLength);
+
+    console.log(`🚨 [AUDIO] Starting alarm with ${cycleCount} cycles (${totalDuration}s total)`);
+
+    // Create repeating alarm pattern
+    for (let cycle = 0; cycle < cycleCount; cycle++) {
+      if (!alarmIsPlaying) {
+        console.log('🛑 [AUDIO] Alarm stopped during creation');
+        break;
+      }
+
+      const startTime = now + cycle * cycleLength;
+
+      // High frequency tone (950Hz)
+      const osc1 = audioContext.createOscillator();
+      const gain1 = audioContext.createGain();
+      osc1.connect(gain1);
+      gain1.connect(audioContext.destination);
+      osc1.frequency.setValueAtTime(950, startTime);
+      osc1.frequency.exponentialRampToValueAtTime(700, startTime + 0.3);
+      gain1.gain.setValueAtTime(0.5, startTime); // Louder volume for mobile
+      gain1.gain.exponentialRampToValueAtTime(0.1, startTime + 0.3);
+      osc1.start(startTime);
+      osc1.stop(startTime + 0.3);
+      alarmOscillators.push(osc1);
+
+      // Low frequency tone (500Hz)
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+      osc2.connect(gain2);
+      gain2.connect(audioContext.destination);
+      osc2.frequency.setValueAtTime(500, startTime);
+      osc2.frequency.exponentialRampToValueAtTime(350, startTime + 0.3);
+      gain2.gain.setValueAtTime(0.4, startTime); // Louder volume for mobile
+      gain2.gain.exponentialRampToValueAtTime(0.08, startTime + 0.3);
+      osc2.start(startTime);
+      osc2.stop(startTime + 0.3);
+      alarmOscillators.push(osc2);
+    }
+
+    console.log(`✅ [AUDIO] Alarm sound created with ${alarmOscillators.length} oscillators`);
+
+  } catch (error) {
+    console.error('❌ [INDEX] Error in playAlarmSound:', error);
+    alarmIsPlaying = false;
+  }
+};
+
+// Expose stop function globally for components
+window.stopAlarmSound = stopAlarmSound;
+
+// Play sound from file (not available - use Web Audio API instead)
+const playSoundFromFile = (soundUrl) => {
+  console.log('ℹ️ [INDEX] Audio files not available, using Web Audio API instead');
+  playAlarmSound();
 };
