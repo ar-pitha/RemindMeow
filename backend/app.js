@@ -22,7 +22,21 @@ const server = http.createServer(app);
 // Socket.io setup
 const io = socketIO(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Allow localhost for development
+      if (origin === 'http://localhost:3000' || origin === 'http://localhost:5000') {
+        return callback(null, true);
+      }
+      // Allow configured frontend URL
+      if (origin === process.env.FRONTEND_URL) {
+        return callback(null, true);
+      }
+      // Allow all Vercel deployments (*.vercel.app)
+      if (origin && origin.includes('vercel.app')) {
+        return callback(null, true);
+      }
+      callback(null, true);
+    },
     methods: ['GET', 'POST'],
   },
 });
@@ -33,9 +47,27 @@ global.io = io;
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// Dynamic CORS configuration
+const corsOrigin = (origin, callback) => {
+  // Allow localhost for development
+  if (origin === 'http://localhost:3000' || origin === 'http://localhost:5000') {
+    return callback(null, true);
+  }
+  // Allow configured frontend URL
+  if (origin === process.env.FRONTEND_URL) {
+    return callback(null, true);
+  }
+  // Allow all Vercel deployments (*.vercel.app)
+  if (origin && origin.includes('vercel.app')) {
+    return callback(null, true);
+  }
+  callback(null, true); // Allow all for now, restrict later if needed
+};
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: corsOrigin,
     credentials: true,
   })
 );
