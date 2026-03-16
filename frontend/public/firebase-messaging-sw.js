@@ -2,8 +2,9 @@
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
 
+console.log('[SERVICE WORKER] Starting Firebase Cloud Messaging Service Worker');
+
 // Initialize Firebase with correct config
-// These values are automatically populated at build time
 const firebaseConfig = {
   apiKey: 'AIzaSyAfDzoLt-7C-GEutTViNHT7IAdEy2Ar410',
   authDomain: 'alaram-3b961.firebaseapp.com',
@@ -18,7 +19,7 @@ firebase.initializeApp(firebaseConfig);
 // Retrieve an instance of Firebase Messaging
 const messaging = firebase.messaging();
 
-console.log('[SERVICE WORKER] Firebase Cloud Messaging Service Worker initialized');
+console.log('[SERVICE WORKER] Firebase Cloud Messaging initialized');
 
 // Helper to play alarm sound via Web Audio API in service worker
 const playAlarmSound = async () => {
@@ -29,7 +30,7 @@ const playAlarmSound = async () => {
       includeUncontrolled: true 
     });
     
-    console.log(`🔊 [SERVICE WORKER] Found ${clients.length} clients to notify`);
+    console.log('[SERVICE WORKER] Found ' + clients.length + ' clients to notify');
     
     for (const client of clients) {
       client.postMessage({
@@ -39,91 +40,97 @@ const playAlarmSound = async () => {
     }
     
     if (clients.length === 0) {
-      console.warn('⚠️ [SERVICE WORKER] No clients available to trigger sound');
+      console.warn('[SERVICE WORKER] No clients available to trigger sound');
     } else {
-      console.log('✅ [SERVICE WORKER] Alarm sound trigger sent to', clients.length, 'client(s)');
+      console.log('[SERVICE WORKER] Alarm sound trigger sent to ' + clients.length + ' client(s)');
     }
   } catch (error) {
-    console.error('❌ [SERVICE WORKER] Error triggering alarm sound:', error);
+    console.error('[SERVICE WORKER] Error triggering alarm sound:', error);
   }
 };
 
-// Handle background messages
+// Enhanced background message handler for Android
 function handleBackgroundMessage(payload) {
-  console.log('📬 [SERVICE WORKER] Background message received:', payload);
+  console.log('[SERVICE WORKER] Background message received:', payload);
 
   const notificationTitle = payload.notification?.title || 'Alarm Reminder';
   const notificationBody = payload.notification?.body || 'You have a new notification';
-  const taskId = payload.data?.taskId || 'alarm-notification';
+  const taskId = payload.data?.taskId || 'alarm-' + Date.now();
   
-  // Enhanced notification options for mobile with high priority
+  // Android-optimized notification options
   const notificationOptions = {
     body: notificationBody,
     icon: '/favicon.ico',
     badge: '/favicon.ico',
     tag: taskId,
     data: payload.data || {},
-    requireInteraction: true,  // CRITICAL: Keep notification visible until user interacts
-    priority: 'high',  // High priority for mobile notification delivery
-    vibrate: [200, 100, 200],  // Vibration pattern for mobile
+    requireInteraction: true,
+    priority: 'high',
+    vibrate: [200, 100, 200, 100, 200],
+    sound: 'default',
+    timestamp: Date.now(),
     actions: [
       {
         action: 'open',
-        title: 'Open Task',
-        icon: '/favicon.ico',
+        title: 'Open',
       },
       {
-        action: 'close',
+        action: 'dismiss',
         title: 'Dismiss',
-        icon: '/favicon.ico',
       },
     ],
   };
 
-  console.log('🔔 [SERVICE WORKER] Showing notification with options:', notificationOptions);
+  console.log('[SERVICE WORKER] Showing Android notification');
 
-  // Show notification and trigger alarm sound
+  // Show notification
   const notificationPromise = self.registration.showNotification(notificationTitle, notificationOptions);
 
   notificationPromise
     .then(async () => {
-      console.log('✅ [SERVICE WORKER] Notification shown successfully:', notificationTitle);
-      // Give user a moment to see notification before playing sound
+      console.log('[SERVICE WORKER] Android notification shown successfully');
+      // Delay before playing sound
       await new Promise(resolve => setTimeout(resolve, 500));
       await playAlarmSound();
     })
     .catch((error) => {
-      console.error('❌ [SERVICE WORKER] Error showing notification:', error);
+      console.error('[SERVICE WORKER] Error showing Android notification:', error);
+      // Fallback: Try showing with minimal options
+      self.registration.showNotification(notificationTitle, {
+        body: notificationBody,
+        tag: taskId,
+        requireInteraction: true,
+      }).catch(err => console.error('[SERVICE WORKER] Fallback notification failed:', err));
     });
 
   return notificationPromise;
 }
 
-// Handle background messages
+// Register background message handler
 messaging.onBackgroundMessage((payload) => {
+  console.log('[SERVICE WORKER] onBackgroundMessage fired');
   return handleBackgroundMessage(payload);
 });
 
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SERVICE WORKER] Notification clicked:', event.notification, 'Action:', event.action);
+  console.log('[SERVICE WORKER] Notification clicked');
 
   event.notification.close();
 
   // Handle different actions
-  if (event.action === 'close') {
+  if (event.action === 'dismiss') {
     return;
   }
 
   // Handle click action or default click
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then((clientList) => {
-      console.log(`[SERVICE WORKER] Found ${clientList.length} windows`);
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      console.log('[SERVICE WORKER] Found ' + clientList.length + ' windows');
       
       // Check if there's already a window/tab open
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        console.log(`[SERVICE WORKER] Checking window: ${client.url}`);
         if (client.url.includes('dashboard') || client.url.includes('localhost') || client.url.includes('vercel.app')) {
           console.log('[SERVICE WORKER] Focusing existing window');
           return client.focus();
@@ -139,9 +146,9 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Handle notification close
+// Handle notification close (Android specific)
 self.addEventListener('notificationclose', (event) => {
-  console.log('[SERVICE WORKER] Notification closed:', event.notification);
+  console.log('[SERVICE WORKER] Notification closed');
 });
 
 // Respond to messages from clients
