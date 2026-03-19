@@ -5,11 +5,35 @@
   "framework": "create-react-app",
   "routes": [
     {
+      "src": "/manifest.json",
+      "dest": "/manifest.json",
+      "headers": {
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-type": "application/manifest+json"
+      }
+    },
+    {
       "src": "/firebase-messaging-sw.js",
       "dest": "/firebase-messaging-sw.js",
       "headers": {
         "cache-control": "public, max-age=0, must-revalidate",
-        "content-type": "application/javascript"
+        "content-type": "application/javascript",
+        "service-worker-allowed": "/"
+      }
+    },
+    {
+      "src": "/index.html",
+      "dest": "/index.html",
+      "headers": {
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "src": "/icons/(.*)",
+      "dest": "/icons/$1",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
       }
     },
     {
@@ -23,6 +47,17 @@
       "src": "/(.*)",
       "dest": "/index.html",
       "status": 200
+    }
+  ],
+  "headers": [
+    {
+      "source": "/service-worker.js",
+      "headers": [
+        {
+          "key": "service-worker-allowed",
+          "value": "/"
+        }
+      ]
     }
   ]
 }

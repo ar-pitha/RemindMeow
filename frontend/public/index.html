@@ -2,18 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!-- Viewport Configuration -->
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- Theme & App Configuration -->
     <meta name="theme-color" content="#667eea" />
+    <meta name="color-scheme" content="light dark" />
+    
+    <!-- Apple iOS Web App -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Alarm" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180x180.png" />
+    
+    <!-- Chrome Android Web App -->
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta
-      name="description"
-      content="Shared Alarm and Task Reminder System with Firebase Notifications"
-    />
-    <title>🔔 Alarm Reminder - Task Management</title>
+    
+    <!-- SEO & Description -->
+    <meta name="description" content="Shared Alarm and Task Reminder System with Firebase Notifications. Stay organized with instant alarm notifications and task management." />
+    <meta name="application-name" content="Alarm Reminder" />
+    
+    <!-- Manifest & Icons -->
     <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
+    
+    <!-- PWA Preload Hints -->
+    <link rel="preconnect" href="https://www.gstatic.com" />
+    <link rel="dns-prefetch" href="https://www.gstatic.com" />
+    
+    <title>🔔 Alarm Reminder - Task Management</title>
     <style>
       html, body, #root {
         width: 100%;
@@ -21,9 +40,20 @@
         margin: 0;
         padding: 0;
       }
+      
+      /* Prevent zoom on iOS */
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
+      input[type="number"],
+      textarea,
+      select {
+        font-size: 16px;
+      }
     </style>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>This app requires JavaScript to run.</noscript>
   </body>
 </html>

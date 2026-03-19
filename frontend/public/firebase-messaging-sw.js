@@ -57,16 +57,17 @@ function handleBackgroundMessage(payload) {
   const notificationBody = payload.notification?.body || 'You have a new notification';
   const taskId = payload.data?.taskId || 'alarm-' + Date.now();
   
-  // Android-optimized notification options
+  // Android-optimized notification options with enhanced vibration
   const notificationOptions = {
     body: notificationBody,
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-192x192.png',
     tag: taskId,
     data: payload.data || {},
     requireInteraction: true,
     priority: 'high',
-    vibrate: [200, 100, 200, 100, 200],
+    // Vibration pattern: feels like an alarm (multiple short bursts)
+    vibrate: [500, 200, 500, 200, 500, 200, 1000],
     sound: 'default',
     timestamp: Date.now(),
     actions: [

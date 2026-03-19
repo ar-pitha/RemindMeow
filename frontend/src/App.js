@@ -25,6 +25,60 @@ function AppContent() {
   const { user, updateFCMToken, loading } = useContext(AuthContext);
   const notificationsInitializedRef = useRef(false);
   const fcmRefreshIntervalRef = useRef(null);
+  const deferredPromptRef = useRef(null);
+
+  // Setup PWA installation prompt
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      // Prevent the mini-infobar from appearing
+      e.preventDefault();
+      // Stash the event for later use
+      deferredPromptRef.current = e;
+      console.log('✓ PWA install prompt available');
+      
+      // Optional: Show a custom install button to user
+      // This would typically trigger on user action (e.g., button click)
+    };
+
+    const handleAppInstalled = () => {
+      console.log('🎉 PWA installed successfully');
+      deferredPromptRef.current = null;
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  // Check PWA mode and log it
+  useEffect(() => {
+    const checkPWAMode = () => {
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                    window.navigator.standalone === true;
+      const displayMode = window.matchMedia('(display-mode: standalone)').matches ? 'standalone' :
+                         window.matchMedia('(display-mode: fullscreen)').matches ? 'fullscreen' :
+                         window.matchMedia('(display-mode: minimal-ui)').matches ? 'minimal-ui' :
+                         window.matchMedia('(display-mode: browser)').matches ? 'browser' : 'unknown';
+      
+      console.log(`🔍 Display Mode: ${displayMode}`);
+      console.log(`📱 Is PWA: ${isPWA}`);
+      
+      // Store in session storage for diagnostics
+      sessionStorage.setItem('pwaMode', JSON.stringify({ isPWA, displayMode }));
+    };
+
+    checkPWAMode();
+    // Re-check when display mode might change
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', checkPWAMode);
+    
+    return () => {
+      window.matchMedia('(display-mode: standalone)').removeEventListener('change', checkPWAMode);
+    };
+  }, []);
 
   // Request notification permission on app load (for mobile + desktop)
   useEffect(() => {

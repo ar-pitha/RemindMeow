@@ -9,6 +9,8 @@ export const NotificationDiagnostics = () => {
     isIOS: false,
     isAndroid: false,
     isPWA: false,
+    displayMode: 'unknown',
+    isStandalone: false,
   });
   const [isOpen, setIsOpen] = useState(false);
 
@@ -20,7 +22,18 @@ export const NotificationDiagnostics = () => {
       );
       const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
       const isAndroid = /android/i.test(navigator.userAgent);
-      const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      
+      // Multiple PWA detection methods
+      const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+      const isStandaloneNav = window.navigator.standalone === true;
+      const isFullscreenMode = window.matchMedia('(display-mode: fullscreen)').matches;
+      const isPWA = isStandaloneMode || isStandaloneNav || isFullscreenMode;
+
+      // Determine display mode
+      let displayMode = 'browser';
+      if (window.matchMedia('(display-mode: standalone)').matches) displayMode = 'standalone';
+      else if (window.matchMedia('(display-mode: fullscreen)').matches) displayMode = 'fullscreen';
+      else if (window.matchMedia('(display-mode: minimal-ui)').matches) displayMode = 'minimal-ui';
 
       // Service Worker
       let swStatus = 'not-supported';
@@ -51,10 +64,22 @@ export const NotificationDiagnostics = () => {
         isIOS,
         isAndroid,
         isPWA,
+        displayMode,
+        isStandalone: isStandaloneMode || isStandaloneNav,
       });
+
+      console.log('PWA Diagnostics:', { isPWA, displayMode, isStandalone: isStandaloneMode || isStandaloneNav });
     };
 
     checkStatus();
+
+    // Listen for display mode changes
+    const mediaQueryList = window.matchMedia('(display-mode: standalone)');
+    mediaQueryList.addEventListener('change', checkStatus);
+
+    return () => {
+      mediaQueryList.removeEventListener('change', checkStatus);
+    };
   }, []);
 
   // Only show for mobile devices in development
@@ -113,7 +138,7 @@ export const NotificationDiagnostics = () => {
           position: 'fixed',
           bottom: 20,
           right: 20,
-          maxWidth: '300px',
+          maxWidth: '320px',
           backgroundColor: '#EEECEA',
           border: '1px solid #E5E3DE',
           borderRadius: '8px',
@@ -145,7 +170,7 @@ export const NotificationDiagnostics = () => {
           </button>
 
           <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#1C1B18', paddingRight: '20px' }}>
-            📱 Notification Status
+            📱 App Status
           </div>
           
           <div style={{ marginBottom: '6px' }}>
@@ -154,9 +179,16 @@ export const NotificationDiagnostics = () => {
           </div>
 
           <div style={{ marginBottom: '6px' }}>
+            <span style={{ color: '#9B9890' }}>Display Mode: </span>
+            <span style={{ color: status.isStandalone ? '#10B981' : '#F26B35', fontWeight: 'bold' }}>
+              {status.displayMode.toUpperCase()}
+            </span>
+          </div>
+
+          <div style={{ marginBottom: '6px' }}>
             <span style={{ color: '#9B9890' }}>PWA Mode: </span>
-            <span style={{ color: status.isPWA ? '#10B981' : '#F26B35' }}>
-              {status.isPWA ? '✓ Yes' : status.isMobile ? '✗ No (install app for background notifications)' : 'N/A'}
+            <span style={{ color: status.isPWA ? '#10B981' : '#F26B35', fontWeight: 'bold' }}>
+              {status.isPWA ? '✓ YES' : '✗ NO'}
             </span>
           </div>
 
@@ -170,7 +202,7 @@ export const NotificationDiagnostics = () => {
           </div>
 
           <div style={{ marginBottom: '6px' }}>
-            <span style={{ color: '#9B9890' }}>Notification: </span>
+            <span style={{ color: '#9B9890' }}>Notifications: </span>
             <span style={{ color: getStatusColor(status.notification) }}>
               {getStatusText(status.notification)}
             </span>
@@ -184,14 +216,20 @@ export const NotificationDiagnostics = () => {
           </div>
 
           {status.isIOS && (
-            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#FFF3E0', borderRadius: '4px', color: '#F26B35' }}>
-              ⚠️ iOS: Background notifications not supported in mobile Safari. Use the app on iOS 16.4+ or install as PWA.
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#FFF3E0', borderRadius: '4px', color: '#F26B35', fontSize: '11px' }}>
+              ⚠️ <strong>iOS:</strong> Background notifications require native app or PWA on home screen.
             </div>
           )}
 
-          {status.isMobile && !status.isPWA && (
-            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#E3F2FD', borderRadius: '4px', color: '#1565C0' }}>
-              💡 Tip: Install this app as PWA for reliable background notifications.
+          {status.isMobile && !status.isPWA && status.displayMode === 'browser' && (
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#E3F2FD', borderRadius: '4px', color: '#1565C0', fontSize: '11px' }}>
+              💡 <strong>Install:</strong> Add to home screen or use "Install" option in menu for PWA mode.
+            </div>
+          )}
+
+          {status.isPWA && status.notification !== 'granted' && (
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#FCE4EC', borderRadius: '4px', color: '#C2185B', fontSize: '11px' }}>
+              ⚠️ <strong>Enable notifications</strong> to receive background alarms.
             </div>
           )}
         </div>
