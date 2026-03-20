@@ -21,35 +21,9 @@ const messaging = firebase.messaging();
 
 console.log('[SERVICE WORKER] Firebase Cloud Messaging initialized');
 
-// Helper to play alarm sound via Web Audio API in service worker
-const playAlarmSound = async () => {
-  try {
-    // Get all clients to trigger sound (including hidden ones)
-    const clients = await self.clients.matchAll({ 
-      type: 'window', 
-      includeUncontrolled: true 
-    });
-    
-    console.log('[SERVICE WORKER] Found ' + clients.length + ' clients to notify');
-    
-    for (const client of clients) {
-      client.postMessage({
-        type: 'PLAY_ALARM_SOUND',
-        timestamp: new Date().toISOString(),
-      });
-    }
-    
-    if (clients.length === 0) {
-      console.warn('[SERVICE WORKER] No clients available to trigger sound');
-    } else {
-      console.log('[SERVICE WORKER] Alarm sound trigger sent to ' + clients.length + ' client(s)');
-    }
-  } catch (error) {
-    console.error('[SERVICE WORKER] Error triggering alarm sound:', error);
-  }
-};
-
 // Enhanced background message handler for Android
+// ✅ Works when app is CLOSED (uses system notification APIs)
+// ✅ Works when app is BACKGROUNDED (vibration + system sound)
 function handleBackgroundMessage(payload) {
   console.log('[SERVICE WORKER] Background message received:', payload);
 
@@ -57,23 +31,25 @@ function handleBackgroundMessage(payload) {
   const notificationBody = payload.notification?.body || 'You have a new notification';
   const taskId = payload.data?.taskId || 'alarm-' + Date.now();
   
-  // Android-optimized notification options with enhanced vibration
+  // Android-optimized notification options
+  // These settings work when app is CLOSED or in BACKGROUND
   const notificationOptions = {
     body: notificationBody,
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-192x192.png',
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
     tag: taskId,
-    data: payload.data || {},
     requireInteraction: true,
     priority: 'high',
-    // Vibration pattern: feels like an alarm (multiple short bursts)
+    // ✅ Vibration works when app is closed (system-level vibration)
     vibrate: [500, 200, 500, 200, 500, 200, 1000],
+    // ✅ System notification sound (must use 'default' string)
     sound: 'default',
     timestamp: Date.now(),
+    data: payload.data || {},
     actions: [
       {
         action: 'open',
-        title: 'Open',
+        title: 'Open App',
       },
       {
         action: 'dismiss',
@@ -82,29 +58,40 @@ function handleBackgroundMessage(payload) {
     ],
   };
 
-  console.log('[SERVICE WORKER] Showing Android notification');
+  console.log('[SERVICE WORKER] Showing notification with system sound + vibration');
 
-  // Show notification
-  const notificationPromise = self.registration.showNotification(notificationTitle, notificationOptions);
-
-  notificationPromise
-    .then(async () => {
-      console.log('[SERVICE WORKER] Android notification shown successfully');
-      // Delay before playing sound
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await playAlarmSound();
+  // Show notification (works even when app is closed)
+  return self.registration.showNotification(notificationTitle, notificationOptions)
+    .then(() => {
+      console.log('[SERVICE WORKER] Notification displayed successfully');
+      // Try to notify any open clients to play enhanced sound
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(clients => {
+          if (clients.length > 0) {
+            console.log('[SERVICE WORKER] Found open client(s), sending PLAY_ALARM_SOUND message');
+            clients.forEach(client => {
+              client.postMessage({
+                type: 'PLAY_ALARM_SOUND',
+                data: payload.data,
+                timestamp: Date.now(),
+              });
+            });
+          } else {
+            console.log('[SERVICE WORKER] No open clients - using system notification sound');
+          }
+        })
+        .catch(err => console.error('[SERVICE WORKER] Error matching clients:', err));
     })
     .catch((error) => {
-      console.error('[SERVICE WORKER] Error showing Android notification:', error);
-      // Fallback: Try showing with minimal options
-      self.registration.showNotification(notificationTitle, {
+      console.error('[SERVICE WORKER] Error showing notification:', error);
+      // Fallback notification with minimal options
+      return self.registration.showNotification(notificationTitle, {
         body: notificationBody,
         tag: taskId,
         requireInteraction: true,
+        vibrate: [500, 200, 500, 200, 500, 200, 1000],
       }).catch(err => console.error('[SERVICE WORKER] Fallback notification failed:', err));
     });
-
-  return notificationPromise;
 }
 
 // Register background message handler
