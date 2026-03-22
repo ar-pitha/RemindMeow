@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { BrandLogo, Eye, EyeOff, AlertTriangle, User, Mail } from '../components/Icons';
+import { Eye, EyeOff, AlertTriangle, User, Mail } from '../components/Icons';
 import '../styles/auth.css';
 
 export const RegisterPage = () => {
