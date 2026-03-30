@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { AlertTriangle, TrendingUp, Calendar, Clock, CheckCircle, Sparkles } from './Icons';
+import { CheckCircle, Sparkles } from './Icons';
 import '../styles/aiSuggestions.css';
 
 export const AISuggestions = () => {

@@ -1,9 +1,6 @@
 import React, { useContext, useMemo } from 'react';
 import { TaskContext } from '../context/TaskContext';
-import { AuthContext } from '../context/AuthContext';
-import { formatAlarmTimeIST12Hour } from '../utils/dateFormatter';
 import { TaskList } from './TaskList';
-import { Calendar } from './Calendar';
 import { ChevronDown, ChevronUp } from './Icons';
 import '../styles/tasksView.css';
 

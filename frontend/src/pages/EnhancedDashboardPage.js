@@ -30,7 +30,6 @@ export const EnhancedDashboardPage = ({ setNotificationSlot }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [allTasks, setAllTasks] = useState([]);
   const [showReasonModal, setShowReasonModal] = useState(false);
-  const [lateTaskId, setLateTaskId] = useState(null);
   const [lateTask, setLateTask] = useState(null);
   const socketInitializedRef = useRef(false);
   const userIdRef = useRef(null);
@@ -85,7 +84,6 @@ export const EnhancedDashboardPage = ({ setNotificationSlot }) => {
         // Show modal only once when task becomes late
         if (isPastThreshold && !lastCheckRef.current[task._id]) {
           lastCheckRef.current[task._id] = true;
-          setLateTaskId(task._id);
           setLateTask(task);
           setShowReasonModal(true);
           console.log(`[LATE DETECTION] Task "${task.title}" is late by 5+ minutes`);
@@ -326,12 +324,10 @@ export const EnhancedDashboardPage = ({ setNotificationSlot }) => {
           task={lateTask}
           onClose={() => {
             setShowReasonModal(false);
-            setLateTaskId(null);
             setLateTask(null);
           }}
           onSubmit={() => {
             setShowReasonModal(false);
-            setLateTaskId(null);
             setLateTask(null);
             getTasks(activeTab);
           }}

@@ -6,7 +6,6 @@ import '../styles/habitInsights.css';
 export const HabitInsights = () => {
   const [habits, setHabits] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchHabitInsights();
