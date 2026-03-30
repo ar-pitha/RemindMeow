@@ -198,6 +198,39 @@ export const VolumeX = (props) => (
   </Icon>
 );
 
+export const Calendar = (props) => (
+  <Icon {...props}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </Icon>
+);
+
+export const ChevronLeft = (props) => (
+  <Icon {...props}>
+    <polyline points="15 18 9 12 15 6" />
+  </Icon>
+);
+
+export const ChevronRight = (props) => (
+  <Icon {...props}>
+    <polyline points="9 18 15 12 9 6" />
+  </Icon>
+);
+
+export const ChevronUp = (props) => (
+  <Icon {...props}>
+    <polyline points="18 15 12 9 6 15" />
+  </Icon>
+);
+
+export const ChevronDown = (props) => (
+  <Icon {...props}>
+    <polyline points="6 9 12 15 18 9" />
+  </Icon>
+);
+
 export const MapPin = (props) => (
   <Icon {...props}>
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -210,18 +243,6 @@ export const Timer = (props) => (
     <line x1="10" y1="2" x2="14" y2="2" />
     <line x1="12" y1="14" x2="12" y2="8" />
     <circle cx="12" cy="14" r="8" />
-  </Icon>
-);
-
-export const ChevronDown = (props) => (
-  <Icon {...props}>
-    <polyline points="6 9 12 15 18 9" />
-  </Icon>
-);
-
-export const ChevronRight = (props) => (
-  <Icon {...props}>
-    <polyline points="9 18 15 12 9 6" />
   </Icon>
 );
 
@@ -304,5 +325,19 @@ export const Settings = (props) => (
   <Icon {...props}>
     <circle cx="12" cy="12" r="3" />
     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </Icon>
+);
+
+export const Sparkles = (props) => (
+  <Icon {...props}>
+    <path d="M9.813 15.904l-5.338.334a2 2 0 0 1-1.97-2.437l1.821-9.923a2 2 0 0 1 1.97-1.57h12.268a2 2 0 0 1 1.97 2.437l-.44 2.393" />
+    <path d="M20.55 5.993A2 2 0 0 0 18.592 4h-12.268a2 2 0 0 0-1.958 2.437l1.82 9.923a2 2 0 0 0 1.958 1.57h5.338" />
+    <path d="M12 11l3-3m0 6l-3-3m6-6l3-3m0 6l-3-3" />
+  </Icon>
+);
+
+export const Activity = (props) => (
+  <Icon {...props}>
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
   </Icon>
 );

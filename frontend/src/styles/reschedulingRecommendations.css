@@ -1,0 +1,504 @@
+/* Rescheduling Recommendations Component Styles */
+
+.recommendations {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  animation: slideIn 0.3s ease-out;
+}
+
+.recommendations.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #6B7280;
+  font-size: 15px;
+  background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.recommendations.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 180px;
+  text-align: center;
+  color: #9CA3AF;
+  background: #FAFBFC;
+}
+
+.recommendations.empty svg {
+  opacity: 0.6;
+}
+
+.recommendations.empty p {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: #374151;
+}
+
+.recommendations.empty span {
+  font-size: 13px;
+  color: #9CA3AF;
+}
+
+.recommendations.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 200px;
+  text-align: center;
+  color: #EF4444;
+  background: #FEF2F2;
+  border-color: #FECACA;
+}
+
+.recommendations.error p {
+  font-size: 14px;
+  margin: 0;
+  color: #DC2626;
+}
+
+.retry-btn {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background: #EF4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover {
+  background: #DC2626;
+  transform: translateY(-2px);
+}
+
+/* Header */
+.recommendations-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #F0F0F0;
+}
+
+.recommendations-header h4 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 6px 0;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.recommendations-header h4 svg {
+  color: #3B82F6;
+}
+
+.header-subtitle {
+  margin: 0;
+  color: #6B7280;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Recommendations List */
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.recommendations-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.recommendations-list::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 3px;
+}
+
+.recommendations-list::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+
+.recommendations-list::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* Recommendation Item */
+.recommendation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px;
+  background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.recommendation-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--rec-color, #3B82F6);
+  transition: width 0.3s ease;
+}
+
+.recommendation-item:hover {
+  border-color: #D1D5DB;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: white;
+}
+
+.recommendation-item.applied {
+  background: linear-gradient(135deg, #D1FAE5 0%, #E0F7F0 100%);
+  border-color: #10B981;
+}
+
+.recommendation-item.applied::before {
+  width: 100%;
+  background: #10B981;
+  opacity: 0.1;
+}
+
+/* Recommendation Icon */
+.rec-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.recommendation-item:hover .rec-icon {
+  transform: scale(1.1);
+}
+
+/* Recommendation Content */
+.rec-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.rec-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.rec-type {
+  display: inline-block;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.confidence-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+  color: #1E40AF;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rec-reason {
+  color: #6B7280;
+  font-size: 13px;
+  margin: 6px 0;
+  line-height: 1.4;
+}
+
+/* Recommendation Details */
+.rec-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4B5563;
+  font-size: 12px;
+  margin-top: 8px;
+  padding: 6px 0;
+  font-weight: 500;
+}
+
+.rec-detail svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* Apply Button */
+.apply-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: linear-gradient(135deg, #6366F1, #4F46E5);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+  margin-top: 4px;
+}
+
+.apply-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4F46E5, #4338CA);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.apply-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.apply-btn:disabled {
+  background: linear-gradient(135deg, #10B981, #059669);
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+/* Recommendations Footer */
+.recommendations-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 12px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.refresh-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #F3F4F6, #E5E7EB);
+  color: #374151;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+  background: linear-gradient(135deg, #E5E7EB, #D1D5DB);
+  border-color: #9CA3AF;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .recommendations {
+    margin: 12px -16px;
+    border-radius: 0;
+    padding: 16px;
+  }
+
+  .recommendation-item {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .rec-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .apply-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .rec-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .rec-reason {
+    font-size: 12px;
+  }
+
+  .rec-detail {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .recommendations {
+    padding: 12px;
+  }
+
+  .recommendation-item {
+    padding: 10px;
+  }
+
+  .rec-type {
+    font-size: 13px;
+  }
+
+  .confidence-badge {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Color Variables for Different Recommendation Types */
+.rec-icon {
+  --rec-color: #3B82F6;
+}
+
+.recommendation-item:has(.rec-detail:contains("best_time_of_day")) .rec-icon {
+  --rec-color: #3B82F6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.recommendation-item:has(.rec-detail:contains("less_crowded_day")) .rec-icon {
+  --rec-color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.recommendation-item:has(.rec-detail:contains("more_realistic_deadline")) .rec-icon {
+  --rec-color: #F59E0B;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .recommendations {
+    background: #1F2937;
+    border-color: #374151;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .recommendations.loading {
+    background: linear-gradient(90deg, #374151 25%, #4B5563 50%, #374151 75%);
+    color: #D1D5DB;
+  }
+
+  .recommendations.empty,
+  .recommendations.loading {
+    background: #0F172A;
+    color: #9CA3AF;
+  }
+
+  .recommendations.empty p {
+    color: #E5E7EB;
+  }
+
+  .recommendations-header {
+    border-bottom-color: #374151;
+  }
+
+  .recommendations-header h4 {
+    color: #F3F4F6;
+  }
+
+  .header-subtitle {
+    color: #D1D5DB;
+  }
+
+  .recommendation-item {
+    background: linear-gradient(135deg, #374151 0%, #1F2937 100%);
+    border-color: #4B5563;
+  }
+
+  .recommendation-item:hover {
+    border-color: #6B7280;
+    background: #2D3748;
+  }
+
+  .recommendation-item.applied {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10B981;
+  }
+
+  .rec-type {
+    color: #F3F4F6;
+  }
+
+  .rec-reason {
+    color: #D1D5DB;
+  }
+
+  .rec-detail {
+    color: #E5E7EB;
+  }
+
+  .confidence-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93C5FD;
+  }
+
+  .recommendations-footer {
+    border-top-color: #374151;
+  }
+
+  .refresh-btn {
+    background: linear-gradient(135deg, #374151, #4B5563);
+    color: #E5E7EB;
+    border-color: #6B7280;
+  }
+
+  .refresh-btn:hover {
+    background: linear-gradient(135deg, #4B5563, #6B7280);
+    border-color: #9CA3AF;
+  }
+}

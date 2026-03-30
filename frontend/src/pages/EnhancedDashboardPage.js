@@ -8,13 +8,16 @@ import { TasksView } from '../components/TasksView';
 import { UserAnalytics } from '../components/UserAnalytics';
 import { NotificationPanel, NotificationBell } from '../components/NotificationPanel';
 import { NotificationDiagnostics } from '../components/NotificationDiagnostics';
+import { AISuggestions } from '../components/AISuggestions';
+import { HabitInsights } from '../components/HabitInsights';
+import { ReasonModal } from '../components/ReasonModal';
 import { connectSocket, onTaskCompleted, onNotificationReceived, onAlarmRinging, disconnectSocket } from '../services/socket';
 import { requestFCMToken } from '../firebase/firebase';
 import alarmSoundService from '../services/alarmSound';
-import { Plus, X, Clipboard, CheckCircle, BarChart3, Calendar as CalendarIcon } from '../components/Icons';
+import { Plus, X, Clipboard, CheckCircle, BarChart3, Calendar as CalendarIcon, Sparkles, Activity } from '../components/Icons';
 import '../styles/dashboard.css';
 
-export const DashboardPage = ({ setNotificationSlot }) => {
+export const EnhancedDashboardPage = ({ setNotificationSlot }) => {
   const { tasks, getTasks, loading } = useContext(TaskContext);
   const { user, updateFCMToken } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('pending');
@@ -25,11 +28,15 @@ export const DashboardPage = ({ setNotificationSlot }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [allTasks, setAllTasks] = useState([]); // Store all tasks for calendar
+  const [allTasks, setAllTasks] = useState([]);
+  const [showReasonModal, setShowReasonModal] = useState(false);
+  const [lateTaskId, setLateTaskId] = useState(null);
+  const [lateTask, setLateTask] = useState(null);
   const socketInitializedRef = useRef(false);
   const userIdRef = useRef(null);
   const fcmRefreshedRef = useRef(false);
   const countsInitializedRef = useRef(false);
+  const lastCheckRef = useRef({});
 
   const handleUnreadCountChange = useCallback((count) => {
     setUnreadCount(count);
@@ -49,6 +56,56 @@ export const DashboardPage = ({ setNotificationSlot }) => {
       if (setNotificationSlot) setNotificationSlot(null);
     };
   }, [setNotificationSlot, unreadCount]);
+
+  // Monitor tasks for late detection (every 30 seconds)
+  useEffect(() => {
+    if (!user || !tasks.length) return;
+
+    const monitorLateTask = () => {
+      const now = new Date();
+
+      tasks.forEach((task) => {
+        // Only check pending tasks assigned to current user
+        if (task.status !== 'pending' || task.assignedTo !== user._id) return;
+
+        const alarmTime = task.alarmTime ? new Date(task.alarmTime) : null;
+        if (!alarmTime) return;
+
+        // Calculate 5 minutes after alarm time
+        const fiveMinutesAfter = new Date(alarmTime.getTime() + 5 * 60000);
+
+        // Check if current time is past the 5-minute threshold
+        const isPastThreshold = now > fiveMinutesAfter;
+
+        // Track if we already showed modal for this task
+        if (!lastCheckRef.current[task._id]) {
+          lastCheckRef.current[task._id] = false;
+        }
+
+        // Show modal only once when task becomes late
+        if (isPastThreshold && !lastCheckRef.current[task._id]) {
+          lastCheckRef.current[task._id] = true;
+          setLateTaskId(task._id);
+          setLateTask(task);
+          setShowReasonModal(true);
+          console.log(`[LATE DETECTION] Task "${task.title}" is late by 5+ minutes`);
+        }
+
+        // Reset tracking when task is completed
+        if (task.status === 'completed' && lastCheckRef.current[task._id]) {
+          delete lastCheckRef.current[task._id];
+        }
+      });
+    };
+
+    const monitoringInterval = setInterval(monitorLateTask, 30000); // Check every 30 seconds
+
+    // Initial check
+    monitorLateTask();
+
+    return () => clearInterval(monitoringInterval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?._id, tasks]);
 
   // Load counts for both tabs on initial mount
   useEffect(() => {
@@ -76,22 +133,18 @@ export const DashboardPage = ({ setNotificationSlot }) => {
       const loadTabData = async () => {
         try {
           if (activeTab === 'calendar') {
-            // For calendar, load both pending and completed tasks and merge them
             const pendingTasks = await getTasks('pending', true);
             const completedTasks = await getTasks('completed', true);
             setPendingCount(pendingTasks?.length || 0);
             setCompletedCount(completedTasks?.length || 0);
-            // Merge both arrays for calendar display
             const merged = [...(pendingTasks || []), ...(completedTasks || [])];
             setAllTasks(merged);
-          } else if (activeTab === 'analytics') {
-            // For analytics, load both pending and completed tasks
+          } else if (activeTab === 'analytics' || activeTab === 'ai' || activeTab === 'habits') {
             const pendingTasks = await getTasks('pending', true);
             const completedTasks = await getTasks('completed', true);
             setPendingCount(pendingTasks?.length || 0);
             setCompletedCount(completedTasks?.length || 0);
           } else {
-            // For pending/completed tabs
             const tabTasks = await getTasks(activeTab, true);
             if (activeTab === 'pending') {
               setPendingCount(tabTasks?.length || 0);
@@ -108,7 +161,7 @@ export const DashboardPage = ({ setNotificationSlot }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
-  // Refresh FCM token ONCE when dashboard component mounts with a user
+  // Refresh FCM token
   useEffect(() => {
     if (user && !fcmRefreshedRef.current) {
       fcmRefreshedRef.current = true;
@@ -116,10 +169,10 @@ export const DashboardPage = ({ setNotificationSlot }) => {
         try {
           const fcmToken = await requestFCMToken();
           if (fcmToken && updateFCMToken) {
-            await updateFCMToken(fcmToken, 'Web Browser - Dashboard Load');
+            await updateFCMToken(fcmToken, 'Web Browser - Enhanced Dashboard Load');
           }
         } catch (err) {
-          console.warn('Failed to refresh FCM token on dashboard load:', err.message);
+          console.warn('Failed to refresh FCM token:', err.message);
         }
       };
       refreshFCMTokenOnDashboardLoad();
@@ -127,7 +180,7 @@ export const DashboardPage = ({ setNotificationSlot }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  // Setup websocket listeners - only once per user
+  // Setup websocket listeners
   useEffect(() => {
     if (!user) return;
     if (!socketInitializedRef.current || userIdRef.current !== user._id) {
@@ -196,6 +249,14 @@ export const DashboardPage = ({ setNotificationSlot }) => {
             <BarChart3 size={14} />
             <span className="dash-tab-label">Analytics</span>
           </button>
+          <button className={`dash-tab ${activeTab === 'ai' ? 'active' : ''}`} onClick={() => setActiveTab('ai')}>
+            <Sparkles size={14} />
+            <span className="dash-tab-label">Suggestions</span>
+          </button>
+          <button className={`dash-tab ${activeTab === 'habits' ? 'active' : ''}`} onClick={() => setActiveTab('habits')}>
+            <Activity size={14} />
+            <span className="dash-tab-label">Habits</span>
+          </button>
         </div>
         <button className="dash-create-btn" onClick={() => setShowForm(!showForm)}>
           {showForm ? <X size={14} /> : <Plus size={14} />}
@@ -213,15 +274,27 @@ export const DashboardPage = ({ setNotificationSlot }) => {
       )}
 
       <div className="dash-panel">
-        {loading && activeTab !== 'analytics' && activeTab !== 'calendar' ? (
+        {loading && activeTab !== 'analytics' && activeTab !== 'calendar' && activeTab !== 'ai' && activeTab !== 'habits' ? (
           <div className="loading">Loading tasks...</div>
         ) : activeTab === 'calendar' ? (
-          <div>
-            <Calendar tasks={allTasks} onDateSelect={setSelectedDate} selectedDate={selectedDate} />
-            <TasksView selectedDate={selectedDate} onDateSelect={setSelectedDate} tasks={allTasks} />
+          <div className="calendar-split-layout">
+            <div className="calendar-left">
+              <Calendar tasks={allTasks} onDateSelect={setSelectedDate} selectedDate={selectedDate} />
+            </div>
+            <div className="calendar-right">
+              <TasksView selectedDate={selectedDate} onDateSelect={setSelectedDate} tasks={allTasks} />
+            </div>
           </div>
         ) : activeTab === 'analytics' ? (
           <UserAnalytics />
+        ) : activeTab === 'ai' ? (
+          <div className="ai-tab-content">
+            <AISuggestions />
+          </div>
+        ) : activeTab === 'habits' ? (
+          <div className="habits-tab-content">
+            <HabitInsights />
+          </div>
         ) : (
           <TaskList
             tasks={activeTab === 'pending' ? pendingTasks : completedTasks}
@@ -247,6 +320,25 @@ export const DashboardPage = ({ setNotificationSlot }) => {
       />
 
       <NotificationDiagnostics />
+
+      {showReasonModal && lateTask && (
+        <ReasonModal
+          task={lateTask}
+          onClose={() => {
+            setShowReasonModal(false);
+            setLateTaskId(null);
+            setLateTask(null);
+          }}
+          onSubmit={() => {
+            setShowReasonModal(false);
+            setLateTaskId(null);
+            setLateTask(null);
+            getTasks(activeTab);
+          }}
+        />
+      )}
     </div>
   );
 };
+
+export default EnhancedDashboardPage;

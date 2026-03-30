@@ -6,10 +6,13 @@ import { requestFCMToken, requestNotificationPermissionOnAppLoad, setupForegroun
 import { Header } from './components/Header';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { DashboardPage } from './pages/DashboardPage';
+import { EnhancedDashboardPage } from './pages/EnhancedDashboardPage';
 import './styles/auth.css';
 import './styles/dashboard.css';
 import './styles/components.css';
+import './styles/aiSuggestions.css';
+import './styles/habitInsights.css';
+import './styles/reschedulingRecommendations.css';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useContext(AuthContext);
@@ -223,7 +226,7 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <TaskProvider>
-                <DashboardPage setNotificationSlot={setNotificationSlot} />
+                <EnhancedDashboardPage setNotificationSlot={setNotificationSlot} />
               </TaskProvider>
             </ProtectedRoute>
           }
